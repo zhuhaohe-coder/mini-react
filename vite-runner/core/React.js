@@ -20,24 +20,84 @@ function createElement(type, props, ...children) {
   };
 }
 
-function render(el, container) {
-  const dom =
-    el.type === "TEXT_ELEMENT"
-      ? document.createTextNode(el.nodeValue)
-      : document.createElement(el.type);
+function createDom(type) {
+  return type === "TEXT_ELEMENT"
+    ? document.createTextNode("")
+    : document.createElement(type);
+}
 
-  Object.keys(el.props).forEach((prop) => {
+function updateProps(dom, props) {
+  Object.keys(props).forEach((prop) => {
     if (prop !== "children") {
-      dom[prop] = el.props[prop];
+      dom[prop] = props[prop];
     }
   });
-
-  el.props.children.forEach((child) => {
-    render(child, dom);
-  });
-
-  container.append(dom);
 }
+
+function initChildren(fiber) {
+  const children = fiber.props.children;
+  let prevChild = null;
+  children.forEach((child, index) => {
+    const newFiber = {
+      type: child.type,
+      props: child.props,
+      child: null,
+      parent: fiber,
+      sibling: null,
+      dom: null,
+    };
+    if (index === 0) {
+      fiber.child = newFiber;
+    } else {
+      prevChild.sibling = newFiber;
+    }
+    prevChild = child;
+  });
+}
+
+let nextWorkOfUnit = null;
+function performWorkOfUnit(fiber) {
+  if (!fiber.dom) {
+    const dom = (fiber.dom = createDom(fiber.type));
+
+    fiber.parent.dom.append(dom);
+
+    updateProps(dom, fiber.props);
+  }
+
+  //转换链表
+  initChildren(fiber);
+
+  //返回下一个任务 :1.child 2.sibling 3.parent.sibling
+  return fiber.child
+    ? fiber.child
+    : fiber.sibling
+    ? fiber.sibling
+    : fiber.parent.sibling
+    ? fiber.parent.sibling
+    : null;
+}
+
+function render(el, container) {
+  nextWorkOfUnit = {
+    dom: container,
+    props: {
+      children: [el],
+    },
+  };
+}
+
+function workLoop(deadline) {
+  let shouldYield = false;
+  while (!shouldYield && nextWorkOfUnit) {
+    shouldYield = deadline.timeRemaining() < 1;
+    nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit);
+  }
+  requestIdleCallback(workLoop);
+}
+
+requestIdleCallback(workLoop);
+
 export default {
   render,
   createElement,
