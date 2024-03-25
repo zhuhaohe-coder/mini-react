@@ -82,5 +82,24 @@ performWorkOfUnit
   };
 ```
 
+# Day 03
 
+## 实现统一提交
+
+存在问题: 中途可能无空余时间, 用户会看到渲染一半的dom
+
+解决思路: 计算结束后统一添加到屏幕里
+
+关键点:
+
+1. 何时处理完链表 ? `nextWorkOfUnit===null`
+2. 根结点 ? render中初始化的 `nextWorkOfUnit`
+
+## 实现 function component
+
+- fiber的type若为function需要调用一下,传入props
+- 处理children的格式
+- 递归寻找有dom的父节点
+- 更改文本节点的判断,添加number类型
+- 更改寻找叔叔节点的逻辑
 
