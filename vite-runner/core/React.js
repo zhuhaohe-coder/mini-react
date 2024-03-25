@@ -1,3 +1,6 @@
+let nextWorkOfUnit = null;
+let root = null;
+
 function createTextNode(nodeValue) {
   return {
     type: "TEXT_ELEMENT",
@@ -56,22 +59,27 @@ function initChildren(fiber, children) {
   });
 }
 
-let nextWorkOfUnit = null;
+function updateHostComponent(fiber) {
+  if (!fiber.dom) {
+    const dom = (fiber.dom = createDom(fiber.type));
+    updateProps(dom, fiber.props);
+  }
+  const children = fiber.props.children;
+  initChildren(fiber, children);
+}
+
+function updateFunctionComponent(fiber) {
+  const children = [fiber.type(fiber.props)];
+  initChildren(fiber, children);
+}
+
 function performWorkOfUnit(fiber) {
   const isFunctionComponent = typeof fiber.type === "function";
   if (!isFunctionComponent) {
-    if (!fiber.dom) {
-      const dom = (fiber.dom = createDom(fiber.type));
-      updateProps(dom, fiber.props);
-    }
+    updateHostComponent(fiber);
+  } else {
+    updateFunctionComponent(fiber);
   }
-
-  //转换链表
-  const children = isFunctionComponent
-    ? [fiber.type(fiber.props)]
-    : fiber.props.children;
-
-  initChildren(fiber, children);
 
   //返回下一个任务 :1.child 2.sibling 3.parent.sibling
   if (fiber.child) {
@@ -88,7 +96,7 @@ function performWorkOfUnit(fiber) {
     nextFiber = nextFiber.parent;
   }
 }
-let root = null;
+
 function render(el, container) {
   nextWorkOfUnit = {
     dom: container,
