@@ -51,7 +51,7 @@ function initChildren(fiber) {
     } else {
       prevChild.sibling = newFiber;
     }
-    prevChild = child;
+    prevChild = newFiber;
   });
 }
 
