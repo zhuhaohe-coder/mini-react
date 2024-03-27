@@ -1,12 +1,19 @@
 import React from "./core/React.js";
 
+let count = 0;
+
+let className = "app";
+
 function Counter({ num }) {
   const handleClick = () => {
     console.log("click");
+    count++;
+    className = "123123";
+    React.update();
   };
   return (
-    <div className="counter">
-      Count:{num}
+    <div className={className}>
+      Count:{count}
       <button onClick={handleClick}>click</button>
     </div>
   );

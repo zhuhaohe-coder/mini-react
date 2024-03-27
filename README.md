@@ -103,3 +103,42 @@ performWorkOfUnit
 - 更改文本节点的判断,添加number类型
 - 更改寻找叔叔节点的逻辑
 
+# Day 04 
+
+## 实现事件绑定
+
+在处理props时拦截"on"开头的prop,并添加对应事件
+
+## 实现更新props
+
+核心: 对比新旧两颗dom树
+
+问题:
+
+1. 如何得到新的dom树
+
+   render函数构建dom树 ---> update函数
+
+   定义currentRoot, 在重置root前赋值
+
+2. 如何找到老的节点
+
+   新节点创建一个属性alternate指向老的节点
+
+   initChildren时判断是更新/创建, 添加一个新属性effectTag(update/placement)
+
+   更新是不会创建dom的,直接用老的dom
+
+   绑定alternate
+
+   多个子节点需要更新oldFiber = oldFiber.sibling
+
+   在commitWork中判断更新还是插入
+
+3. 如何 diff props
+
+   updateProps(dom,nextProps,prevProps);
+
+   1. old有 new没有  删除
+   2. new有 old无 添加
+   3. new有 old有 修改
