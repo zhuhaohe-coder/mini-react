@@ -33,8 +33,13 @@ function createDom(type) {
 
 function updateProps(dom, props) {
   Object.keys(props).forEach((prop) => {
-    if (prop !== "children") {
-      dom[prop] = props[prop];
+    if (prop.startsWith("on")) {
+      const eventType = prop.slice(2).toLocaleLowerCase();
+      dom.addEventListener(eventType, props[prop]);
+    } else {
+      if (prop !== "children") {
+        dom[prop] = props[prop];
+      }
     }
   });
 }
