@@ -93,6 +93,11 @@ function reconcileChildren(fiber, children) {
     }
     // 第n个(n>=2)子节点需要用上一个子节点的sibling去指向
     if (oldFiber) oldFiber = oldFiber.sibling;
+    // 删除多余旧节点
+    while (oldFiber) {
+      deletions.push(oldFiber);
+      oldFiber = oldFiber.sibling;
+    }
 
     if (index === 0) {
       fiber.child = newFiber;

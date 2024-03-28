@@ -158,11 +158,11 @@ Function Component需要进行特殊处理 fiber要有dom, fiber.parent也要有
 
 删除完后需将数组置空
 
-## diff-删除多余的老街店
+## diff-删除多余的老节点
 
+新的比老的短,多出来的节点需要删掉
 
-
-
+多出来的节点为oldFiber.sibling
 
 ## 解决edge case的方式
 
