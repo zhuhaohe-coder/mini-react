@@ -1,36 +1,33 @@
 import React from "./core/React.js";
 
-let count = 0;
-
-let className = "app";
-
-function Counter({ num }) {
-  const handleClick = () => {
-    console.log("click");
-    count++;
-    className = "123123";
-    React.update();
-  };
-  return (
-    <div className={className}>
-      Count:{count}
-      <button onClick={handleClick}>click</button>
-    </div>
-  );
+let showBar = false;
+function Foo() {
+  return <p>foo</p>;
 }
-function CounterContainer() {
+function Counter() {
+  const bar = <p>bar</p>;
+
+  function handleShowBar() {
+    showBar = !showBar;
+    React.update();
+  }
+
   return (
     <div>
-      <Counter num={10} />
-      {/* <Counter num={20} /> */}
+      Counter
+      <div>{showBar ? bar : <Foo />}</div>
+      <button onClick={handleShowBar} showBar>
+        showBar
+      </button>
     </div>
   );
 }
+
 function App() {
   return (
     <div className="app">
       hello-mini-react
-      <CounterContainer />
+      <Counter />
     </div>
   );
 }

@@ -139,6 +139,36 @@ performWorkOfUnit
 
    updateProps(dom,nextProps,prevProps);
 
-   1. old有 new没有  删除
+   1. old有 new没有  删除 removeAttribute
    2. new有 old无 添加
    3. new有 old有 修改
+   4. 删除之前的回调
+
+# Day 05
+
+## diff-更新children
+
+核心: type不一致 删除旧的 创建新的
+
+在`reconcileChildren` 中判断了fiber的type是否一致,得到需要删除的fiber
+
+设置一个数组存储需要删除的fiber 在`commitRoot`阶段删除
+
+Function Component需要进行特殊处理 fiber要有dom, fiber.parent也要有dom
+
+删除完后需将数组置空
+
+## diff-删除多余的老街店
+
+
+
+
+
+## 解决edge case的方式
+
+
+
+
+
+## 优化更新 减少不必要的计算
+

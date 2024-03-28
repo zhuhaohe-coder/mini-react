@@ -2,6 +2,7 @@ let nextWorkOfUnit = null;
 //work in progress
 let wipRoot = null;
 let currentRoot = null;
+let deletions = [];
 
 function createTextNode(nodeValue) {
   return {
@@ -88,6 +89,7 @@ function reconcileChildren(fiber, children) {
         dom: null,
         effectTag: "placement",
       };
+      if (oldFiber) deletions.push(oldFiber);
     }
     // 第n个(n>=2)子节点需要用上一个子节点的sibling去指向
     if (oldFiber) oldFiber = oldFiber.sibling;
@@ -150,9 +152,23 @@ function render(el, container) {
 }
 
 function commitRoot() {
+  deletions.forEach(commitDeletion);
+  deletions = [];
   commitWork(wipRoot.child);
   currentRoot = wipRoot;
   wipRoot = null;
+}
+
+function commitDeletion(fiber) {
+  if (fiber.dom) {
+    let fiberParent = fiber.parent;
+    while (!fiberParent.dom) {
+      fiberParent = fiberParent.parent;
+    }
+    fiberParent.dom.removeChild(fiber.dom);
+  } else {
+    commitDeletion(fiber.child);
+  }
 }
 
 function commitWork(fiber) {
