@@ -12,8 +12,6 @@ ReactDoM.createRoot(document.getElementById( "root")).render(<App />)
 
 ## 步骤
 
-
-
 1. 动态创建虚拟dom (注意虚拟dom的形式,要符合jsx的规范)
 2. 创建渲染函数
 3. 重构API
@@ -164,11 +162,16 @@ Function Component需要进行特殊处理 fiber要有dom, fiber.parent也要有
 
 多出来的节点为oldFiber.sibling
 
-## 解决edge case的方式
+## 支持&&操作符
 
-
-
-
+在创建newFiber前做判断来筛除 false 的情况,同时在创建完newFiber后再去更新保存的prevChild
 
 ## 优化更新 减少不必要的计算
 
+问题: 更新子组件时, 其它不相关的组件也会重新执行 造成了浪费
+
+开始节点: 当前要更新的FC
+
+结束节点: 处理兄弟节点时
+
+使用闭包存储真正需要更新的Fiber

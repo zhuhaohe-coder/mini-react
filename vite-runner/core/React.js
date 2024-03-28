@@ -3,6 +3,7 @@ let nextWorkOfUnit = null;
 let wipRoot = null;
 let currentRoot = null;
 let deletions = [];
+let wibFiber = null;
 
 function createTextNode(nodeValue) {
   return {
@@ -80,15 +81,18 @@ function reconcileChildren(fiber, children) {
       };
     } else {
       //create
-      newFiber = {
-        type: child.type,
-        props: child.props,
-        child: null,
-        parent: fiber,
-        sibling: null,
-        dom: null,
-        effectTag: "placement",
-      };
+      if (child) {
+        newFiber = {
+          type: child.type,
+          props: child.props,
+          child: null,
+          parent: fiber,
+          sibling: null,
+          dom: null,
+          effectTag: "placement",
+        };
+      }
+
       if (oldFiber) deletions.push(oldFiber);
     }
     // 第n个(n>=2)子节点需要用上一个子节点的sibling去指向
@@ -104,7 +108,7 @@ function reconcileChildren(fiber, children) {
     } else {
       prevChild.sibling = newFiber;
     }
-    prevChild = newFiber;
+    if (newFiber) prevChild = newFiber;
   });
 }
 
@@ -118,6 +122,7 @@ function updateHostComponent(fiber) {
 }
 
 function updateFunctionComponent(fiber) {
+  wibFiber = fiber;
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
 }
@@ -200,6 +205,10 @@ function workLoop(deadline) {
   while (!shouldYield && nextWorkOfUnit) {
     shouldYield = deadline.timeRemaining() < 1;
     nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit);
+
+    if (nextWorkOfUnit?.type === wipRoot?.sibling?.type) {
+      nextWorkOfUnit = undefined;
+    }
   }
 
   if (!nextWorkOfUnit && wipRoot) {
@@ -210,12 +219,15 @@ function workLoop(deadline) {
 }
 
 function update() {
-  wipRoot = {
-    dom: currentRoot.dom,
-    props: currentRoot.props,
-    alternate: currentRoot,
+  let currentFiber = wibFiber;
+  return () => {
+    console.log(currentFiber);
+    wipRoot = {
+      ...currentFiber,
+      alternate: currentFiber,
+    };
+    nextWorkOfUnit = wipRoot;
   };
-  nextWorkOfUnit = wipRoot;
 }
 
 requestIdleCallback(workLoop);
