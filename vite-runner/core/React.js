@@ -4,6 +4,8 @@ let wipRoot = null;
 let currentRoot = null;
 let deletions = [];
 let wibFiber = null;
+let stateHooks = [];
+let stateHookIndex = 0;
 
 function createTextNode(nodeValue) {
   return {
@@ -122,6 +124,8 @@ function updateHostComponent(fiber) {
 }
 
 function updateFunctionComponent(fiber) {
+  stateHooks = [];
+  stateHookIndex = 0;
   wibFiber = fiber;
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
@@ -218,16 +222,54 @@ function workLoop(deadline) {
   requestIdleCallback(workLoop);
 }
 
-function update() {
+// function update() {
+//   let currentFiber = wibFiber;
+//   return () => {
+//     console.log(currentFiber);
+//     wipRoot = {
+//       ...currentFiber,
+//       alternate: currentFiber,
+//     };
+//     nextWorkOfUnit = wipRoot;
+//   };
+// }
+
+function useState(initial) {
   let currentFiber = wibFiber;
-  return () => {
-    console.log(currentFiber);
+
+  const oldHook = currentFiber.alternate?.stateHooks[stateHookIndex];
+
+  const stateHook = {
+    state: oldHook ? oldHook.state : initial,
+    queue: oldHook ? oldHook.queue : [],
+  };
+
+  stateHook.queue.forEach((action) => {
+    stateHook.state = action(stateHook.state);
+  });
+
+  stateHook.queue = [];
+
+  stateHooks.push(stateHook);
+  stateHookIndex++;
+
+  currentFiber.stateHooks = stateHooks;
+  function setState(action) {
+    const eagerState =
+      typeof action === "function" ? action(stateHook.state) : action;
+
+    if (eagerState === stateHook.state) return;
+
+    stateHook.queue.push(typeof action === "function" ? action : () => action);
+    // 执行更新逻辑
     wipRoot = {
       ...currentFiber,
       alternate: currentFiber,
     };
     nextWorkOfUnit = wipRoot;
-  };
+  }
+
+  return [stateHook.state, setState];
 }
 
 requestIdleCallback(workLoop);
@@ -235,5 +277,6 @@ requestIdleCallback(workLoop);
 export default {
   render,
   createElement,
-  update,
+  // update,
+  useState,
 };

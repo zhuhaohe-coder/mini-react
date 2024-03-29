@@ -175,3 +175,22 @@ Function Component需要进行特殊处理 fiber要有dom, fiber.parent也要有
 结束节点: 处理兄弟节点时
 
 使用闭包存储真正需要更新的Fiber
+
+# Day 06
+
+## 实现UseState
+
+在setState中执行更新逻辑
+
+为currentFiber添加stateHook属性, 用来保存上一次更新后state的值
+
+当处理多个state时会出现混乱, 使用数组和索引去解决
+
+updateFunctionComponent时重置数组和索引
+
+## 批量执行action
+
+将action存储在queue中, 下次执行时统一执行
+
+## 提前检测 减少不必要的更新
+
