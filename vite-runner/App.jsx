@@ -8,6 +8,27 @@ function App() {
     setCount((count) => count + 1);
     setBar("bar");
   }
+
+  React.useEffect(() => {
+    console.log("init");
+    return () => {
+      console.log("cleanup 0");
+    };
+  }, []);
+
+  React.useEffect(() => {
+    console.log("update", count);
+    return () => {
+      console.log("cleanup 1");
+    };
+  }, [count]);
+
+  React.useEffect(() => {
+    console.log("update", count);
+    return () => {
+      console.log("cleanup 2");
+    };
+  }, [count]);
   return (
     <div>
       <div>count:{count}</div>

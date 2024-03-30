@@ -194,3 +194,28 @@ updateFunctionComponent时重置数组和索引
 
 ## 提前检测 减少不必要的更新
 
+提前判断action的值与当前state是否一样
+
+# Day 07
+
+> useEffect的调用时机:  React完成对DOM的渲染之后，并且浏览器完成绘制之前
+
+## 实现useEffect
+
+调用时机：commitWork之后
+
+保存Callback和deps
+
+从根结点一次递归，执行节点上的effecthook
+
+初始化时直接执行，更新时需要检测依赖项是否发生改变（通过判断alternate的deps和当前deps是否相同）
+
+支持多个useEffect也是使用数组存储
+
+## 实现cleanup
+
+deps为空时，cleanup不会执行
+
+在执行Callback时为cleanup赋值
+
+执行effct前遍历（遍历的是之前的effectHook）执行cleanup

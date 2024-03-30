@@ -6,6 +6,7 @@ let deletions = [];
 let wibFiber = null;
 let stateHooks = [];
 let stateHookIndex = 0;
+let effectHooks = [];
 
 function createTextNode(nodeValue) {
   return {
@@ -126,6 +127,7 @@ function updateHostComponent(fiber) {
 function updateFunctionComponent(fiber) {
   stateHooks = [];
   stateHookIndex = 0;
+  effectHooks = [];
   wibFiber = fiber;
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
@@ -169,6 +171,7 @@ function commitRoot() {
   deletions.forEach(commitDeletion);
   deletions = [];
   commitWork(wipRoot.child);
+  commitEffectHooks();
   currentRoot = wipRoot;
   wipRoot = null;
 }
@@ -233,6 +236,46 @@ function workLoop(deadline) {
 //     nextWorkOfUnit = wipRoot;
 //   };
 // }
+function commitEffectHooks() {
+  function run(fiber) {
+    if (!fiber) return;
+    if (fiber.alternate) {
+      //update
+
+      fiber.effectHooks?.forEach((newHook, index) => {
+        if (newHook.deps.length) {
+          const oldEffectHook = fiber.alternate?.effectHooks[index];
+          const isChange = oldEffectHook?.deps.some((oldDep, i) => {
+            return oldDep !== newHook.deps[i];
+          });
+          isChange && (newHook.cleanup = newHook.callback());
+        }
+      });
+    } else {
+      //init
+      fiber.effectHooks?.forEach((hook) => {
+        hook.cleanup = hook.callback();
+      });
+    }
+    run(fiber.child);
+    run(fiber.sibling);
+  }
+
+  function runCleanup(fiber) {
+    if (!fiber) return;
+    fiber.alternate?.effectHooks?.forEach((hook) => {
+      if (hook.deps.length > 0) {
+        hook.cleanup?.();
+      }
+    });
+
+    runCleanup(fiber.child);
+    runCleanup(fiber.sibling);
+  }
+
+  runCleanup(wipRoot);
+  run(wipRoot);
+}
 
 function useState(initial) {
   let currentFiber = wibFiber;
@@ -272,6 +315,16 @@ function useState(initial) {
   return [stateHook.state, setState];
 }
 
+function useEffect(callback, deps) {
+  const effectHook = {
+    callback,
+    deps,
+    cleanup: undefined,
+  };
+  effectHooks.push(effectHook);
+  wibFiber.effectHooks = effectHooks;
+}
+
 requestIdleCallback(workLoop);
 
 export default {
@@ -279,4 +332,5 @@ export default {
   createElement,
   // update,
   useState,
+  useEffect,
 };
