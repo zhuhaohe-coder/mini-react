@@ -3,7 +3,7 @@ let nextWorkOfUnit = null;
 let wipRoot = null;
 let currentRoot = null;
 let deletions = [];
-let wibFiber = null;
+let wipFiber = null;
 let stateHooks = [];
 let stateHookIndex = 0;
 let effectHooks = [];
@@ -100,11 +100,6 @@ function reconcileChildren(fiber, children) {
     }
     // 第n个(n>=2)子节点需要用上一个子节点的sibling去指向
     if (oldFiber) oldFiber = oldFiber.sibling;
-    // 删除多余旧节点
-    while (oldFiber) {
-      deletions.push(oldFiber);
-      oldFiber = oldFiber.sibling;
-    }
 
     if (index === 0) {
       fiber.child = newFiber;
@@ -113,6 +108,11 @@ function reconcileChildren(fiber, children) {
     }
     if (newFiber) prevChild = newFiber;
   });
+  // 删除多余旧节点
+  while (oldFiber) {
+    deletions.push(oldFiber);
+    oldFiber = oldFiber.sibling;
+  }
 }
 
 function updateHostComponent(fiber) {
@@ -128,7 +128,7 @@ function updateFunctionComponent(fiber) {
   stateHooks = [];
   stateHookIndex = 0;
   effectHooks = [];
-  wibFiber = fiber;
+  wipFiber = fiber;
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
 }
@@ -278,7 +278,7 @@ function commitEffectHooks() {
 }
 
 function useState(initial) {
-  let currentFiber = wibFiber;
+  let currentFiber = wipFiber;
 
   const oldHook = currentFiber.alternate?.stateHooks[stateHookIndex];
 
@@ -322,7 +322,7 @@ function useEffect(callback, deps) {
     cleanup: undefined,
   };
   effectHooks.push(effectHook);
-  wibFiber.effectHooks = effectHooks;
+  wipFiber.effectHooks = effectHooks;
 }
 
 requestIdleCallback(workLoop);
